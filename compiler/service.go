@@ -2,7 +2,7 @@ package compiler
 
 import (
 	"fmt"
-	"time"
+	"net/http"
 )
 
 type CompilerService interface {
@@ -24,6 +24,12 @@ type QueueSizeRequest struct {
 type CodeInstance struct {
 	Files     []DafnyFile
 	Requester string
+	Result    chan CompilationResult
+}
+
+type CompilationResult struct {
+	Status  int
+	Content string
 }
 
 type DafnyFile struct {
@@ -74,8 +80,18 @@ func (c *compilerServiceInternal) StartCompilationQueue() {
 		if err != nil {
 			fmt.Printf("Error preparing compilation environment: %s\n", err.Error())
 		}
-		time.Sleep(time.Second)
-		//TODO: compilation
+		result, err := compileAtTmp()
+		if err != nil {
+			inst.Result <- CompilationResult{
+				Status:  http.StatusInternalServerError,
+				Content: "",
+			}
+		} else {
+			inst.Result <- CompilationResult{
+				Status:  http.StatusOK,
+				Content: result,
+			}
+		}
 		fmt.Printf("Compiled request by %s, queue now %d\n", inst.Requester, c.GetQueueSize())
 	}
 }
