@@ -27,8 +27,8 @@ type CodeInstance struct {
 }
 
 type DafnyFile struct {
-	Name    string
-	Content string
+	Name    string `json:"name"`
+	Content string `json:"content"`
 }
 
 func (c *compilerServiceInternal) AddCodeInstanceToQueue(inst CodeInstance) (int, error) {
