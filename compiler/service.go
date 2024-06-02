@@ -27,8 +27,8 @@ type CodeInstance struct {
 }
 
 type DafnyFile struct {
-	name    string
-	content string
+	Name    string
+	Content string
 }
 
 func (c *compilerServiceInternal) AddCodeInstanceToQueue(inst CodeInstance) (int, error) {
@@ -70,6 +70,10 @@ func (c *compilerServiceInternal) StartQueueIncrease() {
 func (c *compilerServiceInternal) StartCompilationQueue() {
 	for inst := range c.codeChan {
 		c.decreaseQueueSize()
+		err := prepareCompilationEnvironment(inst)
+		if err != nil {
+			fmt.Printf("Error preparing compilation environment: %s\n", err.Error())
+		}
 		time.Sleep(time.Second)
 		//TODO: compilation
 		fmt.Printf("Compiled request by %s, queue now %d\n", inst.Requester, c.GetQueueSize())
