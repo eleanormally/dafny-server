@@ -1,6 +1,23 @@
 package compiler
 
+import (
+	"os"
+	"os/exec"
+)
+
 func compileAtTmp() (string, error) {
-	//run dafny compilation on all files in /tmp/dafny-server and return output
-	return "here is where the dafny output goes", nil
+	files, err := os.ReadDir("/tmp/dafny-server")
+	if err != nil {
+		return "", err
+	}
+	filePaths := []string{"verify"}
+	for _, f := range files {
+		if f.IsDir() {
+			continue
+		}
+		filePaths = append(filePaths, "/tmp/dafny-server/"+f.Name())
+	}
+	cmd := exec.Command("dafny", filePaths...)
+	stdout, err := cmd.Output()
+	return string(stdout), err
 }

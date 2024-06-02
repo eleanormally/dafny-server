@@ -84,7 +84,7 @@ func (c *compilerServiceInternal) StartCompilationQueue() {
 		if err != nil {
 			inst.Result <- CompilationResult{
 				Status:  http.StatusInternalServerError,
-				Content: "",
+				Content: result,
 			}
 		} else {
 			inst.Result <- CompilationResult{
