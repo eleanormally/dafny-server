@@ -3,9 +3,10 @@ package endpoints
 import (
 	"dafny-server/compiler"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/labstack/echo/v4"
 )
 
 type RequestBody struct {
@@ -13,19 +14,17 @@ type RequestBody struct {
 	Files     []compiler.DafnyFile
 }
 
-func HandleCompile(c compiler.CompilerService) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
+func HandleCompile(c compiler.CompilerService) func(ctx echo.Context) error {
+	return func(ctx echo.Context) error {
 		rb := RequestBody{}
-		data, err := io.ReadAll(r.Body)
+		data, err := io.ReadAll(ctx.Request().Body)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
+			return ctx.String(http.StatusBadRequest, "")
 		}
 
 		err = json.Unmarshal(data, &rb)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Invalid JSON"))
+			return ctx.String(http.StatusBadRequest, "Invalid JSON")
 		}
 
 		resultChan := make(chan compiler.CompilationResult)
@@ -35,11 +34,8 @@ func HandleCompile(c compiler.CompilerService) func(w http.ResponseWriter, r *ht
 			Result:    resultChan,
 		})
 
-		go func() {
-			res := <-resultChan
-			//TODO: return the values out of this back to the user
-			fmt.Printf("compiled and got http status %d with content %s\n", res.Status, res.Content)
-		}()
+		res := <-resultChan
+		return ctx.String(res.Status, res.Content)
 
 	}
 }

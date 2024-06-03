@@ -5,12 +5,13 @@ import (
 	"net/http"
 
 	"dafny-server/compiler"
+
+	"github.com/labstack/echo/v4"
 )
 
-func HandleHealth(c compiler.CompilerService) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
+func HandleHealth(c compiler.CompilerService) func(ctx echo.Context) error {
+	return func(ctx echo.Context) error {
 		response := fmt.Sprintf("%d", c.GetQueueSize())
-		w.Write([]byte(response))
+		return ctx.String(http.StatusOK, response)
 	}
 }

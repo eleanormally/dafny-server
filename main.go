@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"dafny-server/compiler"
 	"dafny-server/endpoints"
+
+	"github.com/labstack/echo/v4"
 )
 
 func main() {
@@ -17,10 +18,12 @@ func main() {
 		panic(fmt.Sprintf("Error starting compiler service: %s", err.Error()))
 	}
 
-	http.HandleFunc("/health", endpoints.HandleHealth(c))
-	http.HandleFunc("/compile", endpoints.HandleCompile(c))
+	e := echo.New()
 
-	http.ListenAndServe(":80", nil)
+	e.GET("/health", endpoints.HandleHealth(c))
+	e.POST("/compile", endpoints.HandleCompile(c))
+
+	e.Logger.Fatal(e.Start(":80"))
 
 	sigChan := make(chan os.Signal)
 	endChan := make(chan int)
