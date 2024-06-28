@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 	"syscall"
 
 	"dafny-server/compiler"
@@ -19,18 +21,27 @@ func main() {
 		panic(fmt.Sprintf("Error starting compiler service: %s", err.Error()))
 	}
 
+	f, err := os.ReadFile("./allowedOrigins.txt")
+	if err != nil {
+		panic(fmt.Sprintf("unable to get allowed origins: %s", err.Error()))
+	}
+	allowedOrigins := strings.Split(string(f), "\n")
+
+	port := os.Getenv("PORT")
+	if _, err := strconv.Atoi(port); err != nil {
+		port = "80"
+	}
+
 	e := echo.New()
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig {
-  		AllowOrigins: []string{"https://nazime1.github.io/"},
-  		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: allowedOrigins,
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 	}))
 
 	e.GET("/health", endpoints.HandleHealth(c))
 	e.POST("/compile", endpoints.HandleCompile(c))
 
-
-
-	e.Logger.Fatal(e.Start(":80"))
+	e.Logger.Fatal(e.Start(":" + port))
 
 	sigChan := make(chan os.Signal)
 	endChan := make(chan int)
