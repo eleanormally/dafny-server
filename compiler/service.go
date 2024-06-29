@@ -2,7 +2,6 @@ package compiler
 
 import (
 	"fmt"
-	"net/http"
 )
 
 type CompilerService interface {
@@ -80,17 +79,10 @@ func (c *compilerServiceInternal) StartCompilationQueue() {
 		if err != nil {
 			fmt.Printf("Error preparing compilation environment: %s\n", err.Error())
 		}
-		result, err := compileAtTmp()
-		if err != nil {
-			inst.Result <- CompilationResult{
-				Status:  http.StatusInternalServerError,
-				Content: result,
-			}
-		} else {
-			inst.Result <- CompilationResult{
-				Status:  http.StatusOK,
-				Content: result,
-			}
+		result, err, status := compileAtTmp()
+		inst.Result <- CompilationResult{
+			Status:  status,
+			Content: result,
 		}
 		fmt.Printf("Compiled request by %s, queue now %d\n", inst.Requester, c.GetQueueSize())
 	}
