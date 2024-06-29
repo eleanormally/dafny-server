@@ -19,7 +19,7 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("Error starting compiler service: %s", err.Error()))
 	}
-
+  
 	port := os.Getenv("PORT")
 	if _, err := strconv.Atoi(port); err != nil {
 		port = "80"
@@ -34,8 +34,7 @@ func main() {
 	e.GET("/health", endpoints.HandleHealth(c))
 	e.POST("/compile", endpoints.HandleCompile(c))
 
-
-	e.Logger.Fatal(e.Start(":80"))
+	e.Logger.Fatal(e.Start(":" + port))
 
 	sigChan := make(chan os.Signal)
 	endChan := make(chan int)
