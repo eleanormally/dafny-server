@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 
 	"dafny-server/compiler"
@@ -19,15 +20,19 @@ func main() {
 		panic(fmt.Sprintf("Error starting compiler service: %s", err.Error()))
 	}
 
+	port := os.Getenv("PORT")
+	if _, err := strconv.Atoi(port); err != nil {
+		port = "80"
+	}
+
 	e := echo.New()
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig {
-  		AllowOrigins: []string{"https://nazime1.github.io/"},
-  		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 	}))
 
 	e.GET("/health", endpoints.HandleHealth(c))
 	e.POST("/compile", endpoints.HandleCompile(c))
-
 
 
 	e.Logger.Fatal(e.Start(":80"))
