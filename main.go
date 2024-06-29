@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
-	"strings"
 	"syscall"
 
 	"dafny-server/compiler"
@@ -20,13 +19,7 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("Error starting compiler service: %s", err.Error()))
 	}
-
-	f, err := os.ReadFile("./allowedOrigins.txt")
-	if err != nil {
-		panic(fmt.Sprintf("unable to get allowed origins: %s", err.Error()))
-	}
-	allowedOrigins := strings.Split(string(f), "\n")
-
+  
 	port := os.Getenv("PORT")
 	if _, err := strconv.Atoi(port); err != nil {
 		port = "80"
@@ -34,7 +27,7 @@ func main() {
 
 	e := echo.New()
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: allowedOrigins,
+		AllowOrigins: []string{"*"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 	}))
 
